@@ -1,0 +1,386 @@
+\documentclass[a4paper, 14pt]{extarticle}
+
+% Поля
+%----------------------
+\usepackage{geometry}
+\geometry{a4paper,left=2cm,right=1cm,
+    top=2cm,bottom=2cm,bindingoffset=0cm}
+%----------------------
+
+% Russian-specific packages
+%----------------------
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english, main=russian]{babel}
+%----------------------
+
+\usepackage{textcomp}
+
+% Красная строка
+%----------------------
+\usepackage{indentfirst}
+%----------------------
+
+% Graphics
+%----------------------
+\usepackage{graphicx}
+\graphicspath{ {./images} }
+\usepackage{wrapfig}
+%----------------------
+
+% Import minted
+%----------------------
+\usepackage{minted}
+%----------------------
+
+% Import pgfplots
+%----------------------
+\usepackage{pgfplots}
+\pgfplotsset{width=10cm,compat=newest}
+%----------------------
+
+\linespread{1.3}
+\sloppy
+\clubpenalty=10000
+\widowpenalty=10000
+
+\begin{document}
+
+%--------------------------------------
+%			ТИТУЛЬНЫЙ ЛИСТ
+%--------------------------------------
+\begin{titlepage}
+\thispagestyle{empty}
+\newpage
+
+
+%Шапка титульного листа
+%--------------------------------------
+\vspace*{-60pt}
+\hspace{-65pt}
+\begin{minipage}{0.3\textwidth}
+\hspace*{-20pt}\centering
+\includegraphics[width=\textwidth]{emblem}
+\end{minipage}
+\begin{minipage}{0.67\textwidth}\small \textbf{
+\vspace*{-0.7ex}
+\hspace*{-6pt}\centerline{Министерство науки и высшего образования Российской Федерации}
+\vspace*{-0.7ex}
+\centerline{Федеральное государственное бюджетное образовательное учреждение }
+\vspace*{-0.7ex}
+\centerline{высшего образования}
+\vspace*{-0.7ex}
+\centerline{<<Московский государственный технический университет}
+\vspace*{-0.7ex}
+\centerline{имени Н.Э. Баумана}
+\vspace*{-0.7ex}
+\centerline{(национальный исследовательский университет)>>}
+\vspace*{-0.7ex}
+\centerline{(МГТУ им. Н.Э. Баумана)}}
+\end{minipage}
+%--------------------------------------
+
+%Полосы
+%--------------------------------------
+\vspace{-25pt}
+\hspace{-35pt}\rule{\textwidth}{2.3pt}
+
+\vspace*{-20.3pt}
+\hspace{-35pt}\rule{\textwidth}{0.4pt}
+%--------------------------------------
+
+\vspace{1.5ex}
+\hspace{-35pt} \noindent \small ФАКУЛЬТЕТ\hspace{80pt} <<Информатика и системы управления>>
+
+\vspace*{-16pt}
+\hspace{47pt}\rule{0.83\textwidth}{0.4pt}
+
+\vspace{0.5ex}
+\hspace{-35pt} \noindent \small КАФЕДРА\hspace{50pt} <<Теоретическая информатика и компьютерные технологии>>
+
+\vspace*{-16pt}
+\hspace{30pt}\rule{0.866\textwidth}{0.4pt}
+  
+\vspace{11em}
+
+\begin{center}
+\Large {\bf Лабораторная работа №2 } \\ 
+\large {\bf по курсу <<Разработка параллельных и распределенных программ>>} \\
+
+% Labname
+\large << Параллельная реализация решения системы линейных алгебраических
+уравнений с помощью MPI>> \\
+\end{center}\normalsize
+
+\vspace{8em}
+
+
+\begin{flushright}
+  {Студент группы ИУ9-51Б Киселев К.А. \hspace*{15pt}\\ 
+  \vspace{2ex}
+  Преподаватель Царев А.С.\hspace*{15pt}}
+\end{flushright}
+
+\bigskip
+
+\vfill
+ 
+
+\begin{center}
+\textsl{Москва 2023}
+\end{center}
+\end{titlepage}
+%--------------------------------------
+%		КОНЕЦ ТИТУЛЬНОГО ЛИСТА
+%--------------------------------------
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Постановка задачи}
+
+\begin{enumerate}
+	\item{Написать программу, которая реализует итерационный алгоритм
+		решения системы линейных алгебраических уравнений вида Ax=b в
+		соответствии с выбранным вариантом. Здесь A – матрица размером
+		N×N, x и b – векторы длины N. Тип элементов – double.
+		}
+
+	\item{
+		Программу распараллелить с помощью MPI с разрезанием матрицы A
+		по строкам на близкие по размеру, возможно не одинаковые, части.
+		Соседние строки матрицы должны располагаться в одном или в
+		соседних MPI-процессах. Реализовать два варианта программы:
+		1: векторы x и b дублируются в каждом MPI-процессе,
+		2: векторы x и b разрезаются между MPI-процессами аналогично
+		матрице A. (только для сдающих после срока)
+		Уделить внимание тому, чтобы при запуске программы на различном
+		числе MPI-процессов решалась одна и та же задача (исходные данные
+		заполнялись одинаковым образом).
+		}
+		
+	\item{Замерить время работы двух вариантов программы при использовании
+		различного числа процессорных ядер: 1,2, 4, 8, 16. Построить графики
+		зависимости времени работы программы, ускорения и эффективности
+		распараллеливания от числа используемых ядер. Исходные данные,
+		параметры N и $\varepsilon$ подобрать таким образом, чтобы решение задачи на
+		одном ядре занимало не менее 30 секунд. Также параметр N разрешено
+		подобрать таким образом, чтобы он нацело делился на на 1,2,4,8 и 16.
+		}
+
+	\item{На основании полученных результатов сделать вывод о
+		целесообразности использования одного или второго варианта
+		программы.
+		}
+\end{enumerate}
+
+
+\newpage
+
+\section{Практическая реализация}
+
+
+Код программы для решение СЛАУ методом простых итераций с делением матрицы $A$ между процессами
+
+\begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos,
+breakanywhere,
+tabsize=2
+]
+{golang}
+
+func (s *Solver) FindSolution() *mat.VecDense {
+	res := mat.NewVecDense(s.size, nil)
+	metric := math.MaxFloat64
+
+	prev := metric
+
+	buff := make([]float64, s.size)
+	for metric > s.eps {
+		s.comm.AllGatherF64(buff, s.iterateSolution(res).RawVector().Data)
+		tmp := mat.NewVecDense(s.size, buff)
+
+		res.SubVec(res, tmp)
+
+		prev = metric
+		metric = s.calcMetric(res)
+
+		if prev < metric {
+			s.tau *= -1
+		}
+
+	}
+
+	return res
+}
+
+func (s *Solver) iterateSolution(chunk *mat.VecDense) *mat.VecDense {
+	tmp := mat.NewVecDense(s.end-s.start, nil)
+
+	tmp.MulVec(s.coeffs, chunk)
+	tmp.SubVec(tmp, s.freeCoeffs.SliceVec(s.start, s.end))
+	tmp.ScaleVec(s.tau, tmp)
+
+	return tmp
+}
+
+func (s *Solver) calcMetric(xVec *mat.VecDense) float64 {
+	tmp := mat.NewVecDense(s.end-s.start, nil)
+	tmp.MulVec(s.coeffs, xVec)
+	tmp.SubVec(tmp, s.freeCoeffs.SliceVec(s.start, s.end))
+
+	frac := make([]float64, 2)
+	num := float64(0)
+	den := float64(0)
+
+	for _, v := range tmp.RawVector().Data {
+		num += v * v
+	}
+
+	for _, v := range s.freeCoeffs.RawVector().Data {
+		den += v * v
+	}
+
+	s.comm.AllReduceF64(mpi.OpSum, frac, []float64{num, den})
+
+	return math.Sqrt(frac[0]) / math.Sqrt(frac[1])
+}
+\end{minted}
+
+
+\newpage
+
+Код программы для решение СЛАУ методом простых итераций с делением матрицы $A$ и векторов $x, b$ между процессами
+
+\begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos,
+breakanywhere,
+tabsize=2
+]
+{golang}
+
+func (s *SolverWithVecSeparation) FindSolution() *mat.VecDense {
+	res := mat.NewVecDense(s.end-s.start, nil)
+	metric := math.MaxFloat64
+
+	prev := metric
+
+	buff := make([]float64, s.size)
+	for metric > s.eps {
+		chunk := s.iterateSolution(res).RawVector().Data
+
+		s.comm.AllGatherF64(buff, chunk)
+		tmp := mat.NewVecDense(s.size, buff)
+
+		res.SubVec(res, tmp.SliceVec(s.start, s.end))
+
+		prev = metric
+		metric = s.calcMetric(res)
+
+		if prev < metric {
+			s.tau *= -1
+		}
+
+	}
+
+	return res
+}
+
+func (s *SolverWithVecSeparation) iterateSolution(chunk *mat.VecDense) *mat.VecDense {
+	buff := make([]float64, s.size)
+	s.comm.AllGatherF64(buff, chunk.RawVector().Data)
+
+	xvec := mat.NewVecDense(s.size, buff)
+
+	tmp := mat.NewVecDense(s.end-s.start, nil)
+
+	tmp.MulVec(s.coeffs, xvec)
+	tmp.SubVec(tmp, s.freeCoeffs)
+	tmp.ScaleVec(s.tau, tmp)
+
+	return tmp
+}
+
+func (s *SolverWithVecSeparation) calcMetric(chunk *mat.VecDense) float64 {
+	buff := make([]float64, s.size)
+
+	s.comm.AllGatherF64(buff, chunk.RawVector().Data)
+
+	xvec := mat.NewVecDense(s.size, buff)
+
+	tmp := mat.NewVecDense(s.end-s.start, nil)
+
+	tmp.MulVec(s.coeffs, xvec)
+	tmp.SubVec(tmp, s.freeCoeffs)
+
+	frac := make([]float64, 2)
+	num := float64(0)
+	den := float64(0)
+
+	for _, v := range tmp.RawVector().Data {
+		num += v * v
+	}
+
+	for _, v := range s.freeCoeffs.RawVector().Data {
+		den += v * v
+	}
+
+	s.comm.AllReduceF64(mpi.OpSum, frac, []float64{num, den})
+
+	return math.Sqrt(frac[0]) / math.Sqrt(frac[1])
+}
+\end{minted}
+
+\newpage
+
+\section{Результаты сравнения производительности}
+
+\begin{figure}[H]
+	\begin{tikzpicture}
+
+	\begin{axis}[
+		height=9cm,
+		width=0.9\textwidth,
+		grid=major,
+		xmin = 0,
+		xmax = 5,
+		xtick distance=1,
+		xlabel={количество процессов},
+		ylabel={время выполнения, сек},
+	]
+		
+	\addplot[color=blue,mark=*] coordinates {
+		(1,41)
+		(2,29)
+		(3,25)
+		(4,23)
+	};
+	\addlegendentry{C делением матрицы коэф-тов}	
+		
+	\addplot[color=red,mark=*] coordinates {
+		(1,46)
+		(2,32)
+		(3,25)
+		(4,24)
+	};
+	\addlegendentry{С делением матрицы коэф-тов и векторов}	
+	\end{axis}%
+\end{tikzpicture}%
+	\caption{зависимость времени выполнения от количества процессов(n=36000)}
+\end{figure}
+
+
+\end{document}
