@@ -1,13 +1,16 @@
 #include "./solver/solver.hpp"
+#include "boost/numeric/ublas/io.hpp"
 #include "boost/numeric/ublas/matrix.hpp"
 #include "boost/numeric/ublas/vector.hpp"
 #include "omp.h"
-#include <cstddef>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
 #include <iostream>
 
 using namespace boost::numeric;
 
-const size_t SIZE = 10;
+const size_t SIZE = 512;
 
 ublas::matrix<double> get_coeffs(size_t size) {
   ublas::matrix<double> result(size, size);
@@ -21,22 +24,41 @@ ublas::matrix<double> get_coeffs(size_t size) {
   return result;
 }
 
-ublas::vector<double> get_free_coeffs(size_t size) {
-  ublas::vector<double> result(size, size + 1);
+ublas::vector<double> gen_random_u(size_t size) {
+  ublas::vector<double> result(size);
+
+  for (size_t i = 0; i < size; i++) {
+    result(i) = rand() % size;
+  }
   return result;
 }
 
-ublas::matrix<double> generate_random_matrix(size_t size) {}
-
 int main() {
+  std::cout << omp_get_max_threads() << std::endl;
+
   ublas::matrix<double> coeffs = get_coeffs(SIZE);
-  ublas::vector<double> free_coeffs = get_free_coeffs(SIZE);
+  ublas::vector<double> sol = gen_random_u(SIZE);
+  ublas::vector<double> free_coeffs = ublas::prod(coeffs, sol);
 
   Solver s = Solver(SIZE, coeffs, free_coeffs);
 
+  auto start = std::chrono::high_resolution_clock::now();
+
   ublas::vector<double> result = s.FindSolution();
 
-  for (size_t i = 0; i < SIZE; i++) {
-    std::cout << *result.find_element(i) << " ";
-  }
+  auto end = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<double> duration = end - start;
+
+  std::cout << "Execution time: " << duration.count() << " seconds."
+            << std::endl;
+
+  // std::cout << sol << std::endl;
+  // std::cout << result << std::endl;
+  // for (size_t i = 0; i < SIZE; i++) {
+  //   // std::cout << (std::fabs(sol(i) - result(i)) < 1e-5) << std::endl;
+  //   // assert(std::fabs(sol(i) - result(i)) < 1e-5);
+  // }
+  // std::cout << sol << std::endl;
+  // std::cout << result << std::endl;
 }
