@@ -52,13 +52,4 @@ int main() {
 
   std::cout << "Execution time: " << duration.count() << " seconds."
             << std::endl;
-
-  // std::cout << sol << std::endl;
-  // std::cout << result << std::endl;
-  // for (size_t i = 0; i < SIZE; i++) {
-  //   // std::cout << (std::fabs(sol(i) - result(i)) < 1e-5) << std::endl;
-  //   // assert(std::fabs(sol(i) - result(i)) < 1e-5);
-  // }
-  // std::cout << sol << std::endl;
-  // std::cout << result << std::endl;
 }
