@@ -1,0 +1,338 @@
+\documentclass[a4paper, 14pt]{extarticle}
+
+% Поля
+%----------------------
+\usepackage{geometry}
+\geometry{a4paper,left=2cm,right=1cm,
+    top=2cm,bottom=2cm,bindingoffset=0cm}
+%----------------------
+
+% Russian-specific packages
+%----------------------
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english, main=russian]{babel}
+%----------------------
+
+\usepackage{textcomp}
+
+% Красная строка
+%----------------------
+\usepackage{indentfirst}
+%----------------------
+
+% Graphics
+%----------------------
+\usepackage{graphicx}
+\graphicspath{ {./images} }
+\usepackage{wrapfig}
+%----------------------
+
+% Import minted
+%----------------------
+\usepackage{minted}
+%----------------------
+
+% Import pgfplots
+%----------------------
+\usepackage{pgfplots}
+\pgfplotsset{width=10cm,compat=newest}
+%----------------------
+
+\linespread{1.3}
+\sloppy
+\clubpenalty=10000
+\widowpenalty=10000
+
+\begin{document}
+
+%--------------------------------------
+%			ТИТУЛЬНЫЙ ЛИСТ
+%--------------------------------------
+\begin{titlepage}
+\thispagestyle{empty}
+\newpage
+
+
+%Шапка титульного листа
+%--------------------------------------
+\vspace*{-60pt}
+\hspace{-65pt}
+\begin{minipage}{0.3\textwidth}
+\hspace*{-20pt}\centering
+\includegraphics[width=\textwidth]{emblem}
+\end{minipage}
+\begin{minipage}{0.67\textwidth}\small \textbf{
+\vspace*{-0.7ex}
+\hspace*{-6pt}\centerline{Министерство науки и высшего образования Российской Федерации}
+\vspace*{-0.7ex}
+\centerline{Федеральное государственное бюджетное образовательное учреждение }
+\vspace*{-0.7ex}
+\centerline{высшего образования}
+\vspace*{-0.7ex}
+\centerline{<<Московский государственный технический университет}
+\vspace*{-0.7ex}
+\centerline{имени Н.Э. Баумана}
+\vspace*{-0.7ex}
+\centerline{(национальный исследовательский университет)>>}
+\vspace*{-0.7ex}
+\centerline{(МГТУ им. Н.Э. Баумана)}}
+\end{minipage}
+%--------------------------------------
+
+%Полосы
+%--------------------------------------
+\vspace{-25pt}
+\hspace{-35pt}\rule{\textwidth}{2.3pt}
+
+\vspace*{-20.3pt}
+\hspace{-35pt}\rule{\textwidth}{0.4pt}
+%--------------------------------------
+
+\vspace{1.5ex}
+\hspace{-35pt} \noindent \small ФАКУЛЬТЕТ\hspace{80pt} <<Информатика и системы управления>>
+
+\vspace*{-16pt}
+\hspace{47pt}\rule{0.83\textwidth}{0.4pt}
+
+\vspace{0.5ex}
+\hspace{-35pt} \noindent \small КАФЕДРА\hspace{50pt} <<Теоретическая информатика и компьютерные технологии>>
+
+\vspace*{-16pt}
+\hspace{30pt}\rule{0.866\textwidth}{0.4pt}
+  
+\vspace{11em}
+
+\begin{center}
+\Large {\bf Лабораторная работа №3 } \\ 
+\large {\bf по курсу <<Разработка параллельных и распределенных программ>>} \\
+
+% Labname
+\large << Параллельная реализация решения системы линейных алгебраических
+уравнений с помощью OpenMP>> \\
+\end{center}\normalsize
+
+\vspace{8em}
+
+
+\begin{flushright}
+  {Студент группы ИУ9-51Б Киселев К.А. \hspace*{15pt}\\ 
+  \vspace{2ex}
+  Преподаватель Царев А.С.\hspace*{15pt}}
+\end{flushright}
+
+\bigskip
+
+\vfill
+ 
+
+\begin{center}
+\textsl{Москва 2023}
+\end{center}
+\end{titlepage}
+%--------------------------------------
+%		КОНЕЦ ТИТУЛЬНОГО ЛИСТА
+%--------------------------------------
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Постановка задачи}
+
+\begin{enumerate}
+	\item{Написать программу, которая реализует итерационный алгоритм
+		решения системы линейных алгебраических уравнений вида Ax=b в
+		соответствии с выбранным вариантом. Здесь A – матрица размером
+		N×N, x и b – векторы длины N. Тип элементов – double.
+		}
+
+	\item{
+		Программу распараллелить с помощью MP с разрезанием матрицы A
+		по строкам на близкие по размеру, возможно не одинаковые, части.
+		Соседние строки матрицы должны располагаться в одном или в
+		соседних MPI-процессах. Реализовать два варианта программы:
+		1: векторы x и b дублируются в каждом потоке,
+		2: векторы x и b разрезаются между потоками аналогично
+		матрице A. (только для сдающих после срока)
+		Уделить внимание тому, чтобы при запуске программы на различном
+		числе потоков решалась одна и та же задача (исходные данные
+		заполнялись одинаковым образом).
+		}
+		
+	\item{Замерить время работы двух вариантов программы при использовании
+		различного числа процессорных ядер: 1,2, 4, 8, 16. Построить графики
+		зависимости времени работы программы, ускорения и эффективности
+		распараллеливания от числа используемых ядер. Исходные данные,
+		параметры N и $\varepsilon$ подобрать таким образом, чтобы решение задачи на
+		одном ядре занимало не менее 30 секунд. Также параметр N разрешено
+		подобрать таким образом, чтобы он нацело делился на на 1,2,4,8 и 16.
+		}
+
+	\item{На основании полученных результатов сделать вывод о
+		целесообразности использования одного или второго варианта
+		программы.
+		}
+\end{enumerate}
+
+
+\newpage
+
+\section{Практическая реализация}
+
+
+Код программы для решение СЛАУ методом простых итераций с делением матрицы $A$ между потоками  
+
+\begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos,
+breakanywhere,
+tabsize=2
+]
+{c++}
+
+#include "solver.hpp"
+#include "boost/numeric/ublas/matrix.hpp"
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
+#include <cmath>
+#include <omp.h>
+
+using namespace boost::numeric;
+
+const double EPSILON = 1e-4;
+
+Solver::Solver(size_t size, ublas::matrix<double> &coeffs,
+               ublas::vector<double> &free_coeffs)
+    : size(size) {
+  this->coeffs = ublas::matrix<double>(coeffs);
+  this->free_coeffs = ublas::vector<double>(free_coeffs);
+}
+
+ublas::vector<double> Solver::FindSolution() {
+
+  ublas::vector<double> result(size);
+
+  double tau = double(1) / this->size;
+  double metric = std::numeric_limits<double>::max();
+  double prev = metric;
+
+  while (metric >= EPSILON) {
+    prev = metric;
+
+#pragma omp parallel shared(result)
+    {
+      size_t thread_num = omp_get_thread_num();
+      size_t chunk_size = this->size / omp_get_max_threads();
+      size_t start_index = thread_num * chunk_size;
+      size_t end_index = (thread_num == omp_get_max_threads() - 1)
+                             ? this->size
+                             : start_index + chunk_size;
+
+      ublas::vector<double> chunk = this->iterate_solution(result, tau);
+
+#pragma omp barrier
+      for (size_t j = start_index; j < end_index; ++j) {
+        result(j) -= chunk(j - start_index);
+      }
+
+#pragma omp barrier
+    }
+
+    metric = this->calc_metric(result);
+
+    if (prev < metric) {
+      tau *= -1;
+    }
+  }
+
+  return result;
+}
+
+ublas::vector<double> Solver::iterate_solution(ublas::vector<double> &sol,
+                                               double tau) {
+  ublas::vector<double> tmp_free = ublas::subslice(
+      this->free_coeffs,
+      omp_get_thread_num() * (this->size / omp_get_max_threads()), 1,
+      this->size / omp_get_max_threads());
+
+  ublas::matrix<double> tmp_coeffs = ublas::subslice(
+      this->coeffs, omp_get_thread_num() * (this->size / omp_get_max_threads()),
+      1, this->size / omp_get_max_threads(), 0, 1, this->size);
+  ublas::vector<double> tmp = ublas::prod(tmp_coeffs, sol);
+  tmp -= tmp_free;
+  tmp *= tau;
+  return tmp;
+}
+
+double Solver::calc_metric(ublas::vector<double> &sol) {
+
+  double numerator = 0;
+#pragma omp parallel shared(numerator)
+  {
+    ublas::vector<double> tmp_free = ublas::subslice(
+        this->free_coeffs,
+        omp_get_thread_num() * (this->size / omp_get_max_threads()), 1,
+        this->size / omp_get_max_threads());
+
+    ublas::matrix<double> tmp_coeffs = ublas::subslice(
+        this->coeffs,
+        omp_get_thread_num() * (this->size / omp_get_max_threads()), 1,
+        this->size / omp_get_max_threads(), 0, 1, this->size);
+    ublas::vector<double> tmp = ublas::prod(tmp_coeffs, sol);
+    tmp -= tmp_free;
+
+    double sum = 0;
+    std::for_each(tmp.begin(), tmp.end(), [&sum](double d) { sum += d * d; });
+#pragma omp atomic
+    numerator += sum;
+  }
+
+  return std::sqrt(numerator) / ublas::norm_2(this->free_coeffs);
+}
+\end{minted}
+
+
+\newpage
+
+\section{Результаты сравнения производительности}
+
+\begin{figure}[H]
+	\begin{tikzpicture}
+
+	\begin{axis}[
+		height=9cm,
+		width=0.9\textwidth,
+		grid=major,
+		xmin = 0,
+		xmax = 66,
+		xtick distance=8,
+		xlabel={количество потоков},
+		ylabel={время выполнения, сек},
+	]
+		
+	\addplot[color=blue,mark=*] coordinates {
+		(1, 107)
+		(2, 54)
+		(4, 32)
+		(8, 30)
+		(16, 28)
+		(32, 30)
+		(64, 30)
+	};
+		
+	\end{axis}%
+\end{tikzpicture}%
+	\caption{зависимость времени выполнения от количества потоков}
+\end{figure}
+
+
+\end{document}

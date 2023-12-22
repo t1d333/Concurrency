@@ -58,12 +58,12 @@ func NewWorker(workerNum int, logger *zerolog.Logger, ctx context.Context, first
 
 func (w *Worker) logState() {
 	w.logger.Info().Int("worker_num", w.num).Str("worker_state", w.state.String()).Send()
+	<-time.After(1 * time.Millisecond)
 }
 
 func (w *Worker) do(state WorkerState) {
-	t := rand.Intn(50) + 1
+	t := rand.Intn(10) + 1
 	w.state = state
-
 	ch := time.After(time.Duration(t) * time.Millisecond)
 
 	for {

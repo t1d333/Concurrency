@@ -34,7 +34,6 @@ ublas::vector<double> gen_random_u(size_t size) {
 }
 
 int main() {
-  std::cout << omp_get_max_threads() << std::endl;
 
   ublas::matrix<double> coeffs = get_coeffs(SIZE);
   ublas::vector<double> sol = gen_random_u(SIZE);

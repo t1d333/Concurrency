@@ -27,8 +27,8 @@ func min(a, b int) int {
 }
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Millisecond)
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
 	wg := &sync.WaitGroup{}
 	defer cancel()
 	arr := make([]sync.Mutex, 5)

@@ -1,0 +1,541 @@
+\documentclass[a4paper, 14pt]{extarticle}
+
+% Поля
+%----------------------
+\usepackage{geometry}
+\geometry{a4paper,left=2cm,right=1cm,
+    top=2cm,bottom=2cm,bindingoffset=0cm}
+%----------------------
+
+% Russian-specific packages
+%----------------------
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english, main=russian]{babel}
+%----------------------
+
+\usepackage{textcomp}
+
+% Красная строка
+%----------------------
+\usepackage{indentfirst}
+%----------------------
+
+% Graphics
+%----------------------
+\usepackage{graphicx}
+\graphicspath{ {./images} }
+\usepackage{wrapfig}
+%----------------------
+
+% Import minted
+%----------------------
+\usepackage{minted}
+%----------------------
+
+% Import pgfplots
+%----------------------
+\usepackage{pgfplots}
+\pgfplotsset{width=10cm,compat=newest}
+%----------------------
+
+\linespread{1.3}
+\sloppy
+\clubpenalty=10000
+\widowpenalty=10000
+
+\begin{document}
+
+%--------------------------------------
+%			ТИТУЛЬНЫЙ ЛИСТ
+%--------------------------------------
+\begin{titlepage}
+\thispagestyle{empty}
+\newpage
+
+
+%Шапка титульного листа
+%--------------------------------------
+\vspace*{-60pt}
+\hspace{-65pt}
+\begin{minipage}{0.3\textwidth}
+\hspace*{-20pt}\centering
+\includegraphics[width=\textwidth]{emblem}
+\end{minipage}
+\begin{minipage}{0.67\textwidth}\small \textbf{
+\vspace*{-0.7ex}
+\hspace*{-6pt}\centerline{Министерство науки и высшего образования Российской Федерации}
+\vspace*{-0.7ex}
+\centerline{Федеральное государственное бюджетное образовательное учреждение }
+\vspace*{-0.7ex}
+\centerline{высшего образования}
+\vspace*{-0.7ex}
+\centerline{<<Московский государственный технический университет}
+\vspace*{-0.7ex}
+\centerline{имени Н.Э. Баумана}
+\vspace*{-0.7ex}
+\centerline{(национальный исследовательский университет)>>}
+\vspace*{-0.7ex}
+\centerline{(МГТУ им. Н.Э. Баумана)}}
+\end{minipage}
+%--------------------------------------
+
+%Полосы
+%--------------------------------------
+\vspace{-25pt}
+\hspace{-35pt}\rule{\textwidth}{2.3pt}
+
+\vspace*{-20.3pt}
+\hspace{-35pt}\rule{\textwidth}{0.4pt}
+%--------------------------------------
+
+\vspace{1.5ex}
+\hspace{-35pt} \noindent \small ФАКУЛЬТЕТ\hspace{80pt} <<Информатика и системы управления>>
+
+\vspace*{-16pt}
+\hspace{47pt}\rule{0.83\textwidth}{0.4pt}
+
+\vspace{0.5ex}
+\hspace{-35pt} \noindent \small КАФЕДРА\hspace{50pt} <<Теоретическая информатика и компьютерные технологии>>
+
+\vspace*{-16pt}
+\hspace{30pt}\rule{0.866\textwidth}{0.4pt}
+  
+\vspace{11em}
+
+\begin{center}
+\Large {\bf Лабораторная работа №4 } \\ 
+\large {\bf по курсу <<Разработка параллельных и распределенных программ>>} \\
+
+% Labname
+\large <<Задача о пяти обедающих философах.>> \\
+\end{center}\normalsize
+
+\vspace{8em}
+
+
+\begin{flushright}
+  {Студент группы ИУ9-51Б Киселев К.А. \hspace*{15pt}\\ 
+  \vspace{2ex}
+  Преподаватель Царев А.С.\hspace*{15pt}}
+\end{flushright}
+
+\bigskip
+
+\vfill
+ 
+
+\begin{center}
+\textsl{Москва 2023}
+\end{center}
+\end{titlepage}
+%--------------------------------------
+%		КОНЕЦ ТИТУЛЬНОГО ЛИСТА
+%--------------------------------------
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Постановка задачи}
+Суть задачи следующая. Пять философов сидят за круглым столом. Они проводят
+жизнь, чередуя приёмы пищи и размышления. В центра стола находится большое
+блюдо спагетти. Чтобы съесть порцию, каждому философу нужно две вилки. Однако,
+вилок всего пять: между каждой парой рядом сидящих философов лежат по одной
+вилке, и каждый философ может пользоваться только теми вилками, которые лежат
+рядом с ним, слева и справа. Философ не может брать две вилки одновременно:
+сначала он тратит некоторое время на то, чтобы взять одну, затем вторую. Однако, он
+может одновременно положить их на место.
+Задача заключается в том, чтобы написать программу, моделирующую поведение
+философов. Очевидно, что раз вилок всего пять, то одновременно есть могут не более
+двух философов, и два сидящих рядом философа не могут есть одновременно. Для
+имитации периодов раздумий и приёмов пищи можно использовать генератор
+случайных чисел, позволяющий задавать времена их действий в определённом
+интервале. Имитация поведения каждого философа, по сути, разбивается на то, что в
+любой момент времени философ находится в одном из пяти состояний: размышляет,
+берёт левую вилку, берёт правую вилку, ест, кладёт вилки на место. Таким образом,
+вилки являются разделяемым ресурсом.
+На программу накладываются условия:
+\begin{enumerate}
+	\item{Каждый философ, по сути, является потоком, и модель поведения у каждого из
+них должна быть одинаковой, кроме того, какие вилки они могут брать.
+		}
+	\item{
+	 Накладывание блокировки по сути является действием по взятию вилки,
+поэтому накладывать блокировку сразу на обе вилки нельзя; последовательность
+действий должна быть «наложить блокировку – взять вилку – наложить вторую
+блокировку – взять вторую вилку».		
+		}
+	\item{
+	Программа должна избегать ситуации взаимоблокировки: ситуации, в которой
+все философы голодны, то есть ни один из них не может взять себе две вилки
+(например, когда каждый держит по одной и не хочет её отдавать).
+Запрограммировать остановку алгоритма по достижении контрольного времени
+(например, атомарной операцией над булевым флагом). В отчёте построить некоторый
+результат работы алгоритма, которая может быть в виде графика, таблицы, лога или
+чего угодно ещё; главное условие состоит в том, чтобы по результатам можно было
+однозначно определить, чем в каждый момент времени был занят каждый философ
+(одно из пяти состояний).		
+		}
+\end{enumerate}
+
+
+Также рассмотреть вариант программы с увеличением количества философов до
+произвольного N.
+
+\newpage
+
+\section{Практическая реализация}
+
+
+
+\begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos,
+breakanywhere,
+tabsize=2
+]{golang}
+
+package worker
+
+import (
+	"context"
+	"math/rand"
+	"sync"
+	"time"
+
+	"github.com/rs/zerolog"
+)
+
+type WorkerState int
+
+const (
+	Work WorkerState = iota
+	LockedFirstRes
+	LockedSecondRes
+	FreeResources
+	Workless
+)
+
+func (s WorkerState) String() string {
+	switch s {
+	case Work:
+		return "working"
+	case LockedFirstRes:
+		return "locked first resource"
+	case LockedSecondRes:
+		return "locked second resource"
+	case FreeResources:
+		return "freed resources"
+	case Workless:
+		return "not working"
+	default:
+		return "unknown state"
+	}
+}
+
+type Worker struct {
+	num       int
+	ctx       context.Context
+	firstRes  *sync.Mutex
+	secondRes *sync.Mutex
+	state     WorkerState
+	logger    *zerolog.Logger
+}
+
+func NewWorker(workerNum int, logger *zerolog.Logger, ctx context.Context, firstRes, secondRes *sync.Mutex) Worker {
+	return Worker{
+		num:       workerNum,
+		ctx:       ctx,
+		firstRes:  firstRes,
+		secondRes: secondRes,
+		state:     Workless,
+		logger:    logger,
+	}
+}
+
+func (w *Worker) logState() {
+	w.logger.Info().Int("worker_num", w.num).Str("worker_state", w.state.String()).Send()
+	<-time.After(1 * time.Millisecond)
+}
+
+func (w *Worker) do(state WorkerState) {
+	t := rand.Intn(10) + 1
+	w.state = state
+
+	ch := time.After(time.Duration(t) * time.Millisecond)
+
+	for {
+		select {
+		case <-ch:
+			return
+		case <-w.ctx.Done():
+			return
+		default:
+			w.logState()
+		}
+	}
+}
+
+func (w *Worker) freeResources() {
+	w.secondRes.Unlock()
+	w.firstRes.Unlock()
+	w.state = FreeResources
+	w.logState()
+}
+
+func (w *Worker) Run() {
+	for {
+		select {
+		case <-w.ctx.Done():
+			return
+		default:
+			for !w.firstRes.TryLock() {
+				w.do(Workless)
+			}
+
+			w.state = LockedFirstRes
+			w.logState()
+
+			for !w.secondRes.TryLock() {
+				w.do(Workless)
+			}
+
+			w.state = LockedSecondRes
+			w.logState()
+
+			w.do(Work)
+			w.freeResources()
+
+		}
+	}
+}
+\end{minted}
+
+\newpage
+
+\section{Результаты}
+
+
+Результаты рабты программы для $N = 5$. Время работы - 25 миллисекунд. Длительность приема пищи или раздумий выбирается случайно в диапазоне от 1 до 10 мс.
+
+
+	
+\subsection{Результат для первого философа}
+\begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos,
+breakanywhere,
+tabsize=2
+]{js}
+{"level":"info","worker_num":0,"worker_state":"locked first resource","time":1701800489080}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489081}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489082}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489083}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489084}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489085}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489086}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489087}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489089}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489090}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489091}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489092}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489093}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489094}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489095}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489096}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489097}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489099}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489100}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489101}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489102}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489103}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489104}
+{"level":"info","worker_num":0,"worker_state":"not working","time":1701800489105}
+{"level":"info","worker_num":0,"worker_state":"locked second resource","time":1701800489109}
+{"level":"info","worker_num":0,"worker_state":"freed resources","time":1701800489110}
+\end{minted}
+
+\newpage
+
+\subsection{Результат для второго философа} 
+
+\begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos,
+breakanywhere,
+tabsize=2
+]{js}
+
+{"level":"info","worker_num":1,"worker_state":"locked first resource","time":1701800489080}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489082}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489083}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489084}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489085}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489086}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489088}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489089}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489090}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489091}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489092}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489093}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489094}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489095}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489096}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489097}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489098}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489100}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489101}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489102}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489103}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489104}
+{"level":"info","worker_num":1,"worker_state":"not working","time":1701800489105}
+{"level":"info","worker_num":1,"worker_state":"locked second resource","time":1701800489107}
+{"level":"info","worker_num":1,"worker_state":"freed resources","time":1701800489108}
+\end{minted}
+
+\newpage
+
+\subsection{Результат для третьего философа} 
+
+\begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos,
+breakanywhere,
+tabsize=2
+]{js}
+
+{"level":"info","worker_num":2,"worker_state":"locked first resource","time":1701800489080}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489082}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489083}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489084}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489085}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489086}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489088}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489089}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489090}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489091}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489092}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489093}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489094}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489095}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489096}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489097}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489098}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489100}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489101}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489102}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489103}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489104}
+{"level":"info","worker_num":2,"worker_state":"not working","time":1701800489105}
+{"level":"info","worker_num":2,"worker_state":"locked second resource","time":1701800489106}
+{"level":"info","worker_num":2,"worker_state":"freed resources","time":1701800489107}
+\end{minted}
+
+\newpage
+
+\subsection{Результат для четвертого философа} 
+
+\begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos,
+breakanywhere,
+tabsize=2
+]{js}
+
+{"level":"info","worker_num":3,"worker_state":"locked first resource","time":1701800489080}
+{"level":"info","worker_num":3,"worker_state":"locked second resource","time":1701800489081}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489082}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489083}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489084}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489085}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489086}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489088}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489089}
+{"level":"info","worker_num":3,"worker_state":"freed resources","time":1701800489090}
+{"level":"info","worker_num":3,"worker_state":"locked first resource","time":1701800489091}
+{"level":"info","worker_num":3,"worker_state":"locked second resource","time":1701800489092}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489093}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489094}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489095}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489096}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489097}
+{"level":"info","worker_num":3,"worker_state":"freed resources","time":1701800489098}
+{"level":"info","worker_num":3,"worker_state":"locked first resource","time":1701800489100}
+{"level":"info","worker_num":3,"worker_state":"locked second resource","time":1701800489101}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489102}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489103}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489104}
+{"level":"info","worker_num":3,"worker_state":"working","time":1701800489105}
+{"level":"info","worker_num":3,"worker_state":"freed resources","time":1701800489106}
+\end{minted}
+
+\newpage
+
+\subsection{Результат для пятого философа} 
+
+\begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+fontsize=\footnotesize,
+linenos,
+breakanywhere,
+tabsize=2
+]{js}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489080}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489081}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489082}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489083}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489084}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489085}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489086}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489087}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489089}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489090}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489091}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489092}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489093}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489094}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489095}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489096}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489097}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489098}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489100}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489101}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489102}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489103}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489104}
+{"level":"info","worker_num":4,"worker_state":"not working","time":1701800489105}
+{"level":"info","worker_num":4,"worker_state":"locked first resource","time":1701800489110}
+{"level":"info","worker_num":4,"worker_state":"locked second resource","time":1701800489111}
+{"level":"info","worker_num":4,"worker_state":"freed resources","time":1701800489113}
+\end{minted}
+
+
+
+
+\end{document}
